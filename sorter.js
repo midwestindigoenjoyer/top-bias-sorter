@@ -14,7 +14,18 @@ var numQuestion;
 var totalSize;
 var finishSize;
 var finishFlag;
-var prevStates = []; // To store previous states for undo
+
+var prevStates = [];
+
+try {
+  var lsPrevStates = JSON.parse(localStorage.prevStates);
+  prevStates = Array.isArray(lsPrevStates) ? lsPrevStates : [];
+} catch {
+  console.info("No saved data found!");
+}
+
+// To store previous states for undo and cache for accidental refresh
+console.log(prevStates);
 
 // Save current state for undo functionality
 function saveState() {
@@ -31,7 +42,9 @@ function saveState() {
     numQuestion: numQuestion,
     finishSize: finishSize,
     finishFlag: finishFlag,
+    totalSize: totalSize,
   });
+  localStorage.setItem("prevStates", JSON.stringify(prevStates));
 }
 
 // Restore the previous state
@@ -54,8 +67,56 @@ function undoLastAction() {
   }
 }
 
+function ohOkNvm() {
+  document.getElementById("restartPrompt").style = "display: none;";
+  document.getElementById("restartButton").style =
+    "display: flex; justify-content: center; margin-top: 10px;";
+}
+
+function restart() {
+  localStorage.removeItem("prevStates");
+  window.location.reload();
+}
+
+function restartQuestion() {
+  document.getElementById("restartButton").style = "display: none;";
+  document.getElementById("restartPrompt").style =
+    "display: flex; justify-content: center;";
+  // var button = document.getElementById("restartButton");
+  // if (button.outerText === "Restart") {
+  //   button.innerText = "ARE YOU SURE YOU WANT TO RESTART?";
+  //   button.style.background = "rgba(221, 5, 5, 0.348)";
+  //   return;
+  // }
+  // if (button.outerText === "ARE YOU SURE YOU WANT TO RESTART?") {
+  //   localStorage.removeItem("prevStates");
+  //   window.location.reload();
+  // }
+}
+
+function restoreList() {
+  var prevState = prevStates[prevStates.length - 1];
+  lstMember = JSON.parse(JSON.stringify(prevState.lstMember));
+  parent = JSON.parse(JSON.stringify(prevState.parent));
+  equal = JSON.parse(JSON.stringify(prevState.equal));
+  rec = JSON.parse(JSON.stringify(prevState.rec));
+  cmp1 = prevState.cmp1;
+  cmp2 = prevState.cmp2;
+  head1 = prevState.head1;
+  head2 = prevState.head2;
+  nrec = prevState.nrec;
+  numQuestion = prevState.numQuestion - 1;
+  finishSize = prevState.finishSize;
+  finishFlag = prevState.finishFlag;
+  totalSize = prevState.totalSize;
+}
+
 // The initialization of the variable
 function initList() {
+  if (prevStates.length > 0) {
+    restoreList();
+    return;
+  }
   var n = 0;
   var mid;
   var i;
